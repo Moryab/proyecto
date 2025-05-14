@@ -1,52 +1,39 @@
-.venta-container {
-    max-width: 400px;
-    margin: auto;
-    margin-top: 2rem;
-    padding: 1.5rem;
-    border: 1px solid #ccc;
-    border-radius: 15px;
-    background-color: #f8f9fa;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.venta-header {
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.producto-item {
-    background-color: #fff;
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 0.5rem;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-}
-
-.separador {
-    border-top: 1px dashed #6c757d;
-    margin: 0.5rem 0;
-}
-
-.total-section {
-    font-weight: bold;
-    margin-top: 1rem;
-}
-
-.btn-calc,
-.btn-venta {
-    width: 100%;
-    margin-top: 0.5rem;
-}
-
-.form-select,
-.form-control {
-    margin-bottom: 0.5rem;
-}
-
-.search-section {
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
+    justify-content: center;
+    padding-top: 30px;
+  }
+  
+  .form-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  input, select, button {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  button {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #1976D2;
+  }
+  
+  #resultado {
+    margin: 10px 0;
+  }
+  

@@ -2,53 +2,124 @@
 <html lang="es">
 <head>
     {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Formulario de Venta</title>
     <link rel="stylesheet" href="{% static 'aplicacion/css/index.css' %}">
-    <title>Pagina de inicio</title>
+    <script src="{% static 'aplicacion/js/index.js' %}"></script>
 </head>
 <body>
-    <div class="venta-container">
-        <div class="venta-header">Venta</div>
-    
-        <form class="search-section">
-            <input type="text" class="form-control" placeholder="Buscar">
-            <button class="btn btn-primary">🔍</button>
-        </form>
-        
-    
-        {% for item in productos %}
-            <div class="producto-item">
-                <strong>{{ item.sucursal }}</strong><br>
-                Cant: {{ item.cantidad }} | Precio: {{ item.precio }}
-            </div>
-            {% if forloop.counter == 3 %}
-                <div class="separador"></div>
-            {% endif %}
-        {% endfor %}
-    
-        <form method="POST">
-            {% csrf_token %}
-            <select name="sucursal" class="form-select">
-                {% for item in productos %}
-                    <option value="{{ item.sucursal }}">{{ item.sucursal }}</option>
-                {% endfor %}
-            </select>
-    
-            <input type="number" name="cantidad" class="form-control" placeholder="Cantidad">
-    
-            <button type="submit" name="calcular" class="btn btn-info btn-calc">Calcular</button>
-        </form>
-    
-        {% if total %}
-            <div class="total-section">
-                Total: {{ total }}
-            </div>
-        {% endif %}
-    
-        <button class="btn btn-success btn-venta">Venta</button>
+  <div class="form-container">
+    <h2>Venta</h2>
+
+    <label for="buscar">Buscar Producto (ID):</label>
+    <input type="number" id="productoId" placeholder="Ingrese ID del producto" />
+    <button onclick="buscarProducto()">Buscar</button>
+
+    <div id="stock-list">
+      <!-- Este bloque se llena dinámicamente con JS desde la API -->
     </div>
-    
-    
+
+    <label for="sucursal">Sucursal:</label>
+    <select id="sucursal">
+      <!-- Opciones dinámicas que llenaremos con las sucursales disponibles -->
+    </select>
+
+    <label for="cantidad">Cantidad:</label>
+    <input type="number" id="cantidad" min="1" placeholder="Ingrese cantidad" />
+
+    <button id="calc" onclick="calcularTotal()">Calcular</button>
+
+    <div id="resultado">
+      <p>Total: $<span id="total"></span></p>
+      <p>Total en USD: $<span id="total-usd"></span></p>
+    </div>
+
+    <button id="vender" onclick="realizarVenta()">Vender</button>
+
+    <p id="mensaje"></p>
+  </div>
+
+  <script>
+    async function buscarProducto() {
+      const productoId = document.getElementById('productoId').value;
+      const url = `/api/productos/${productoId}/`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const stockList = document.getElementById('stock-list');
+      const sucursalSelect = document.getElementById('sucursal');
+      stockList.innerHTML = "<h3>Stock por Sucursal:</h3>";
+      sucursalSelect.innerHTML = ""; // Limpiar el select
+
+      let totalPrecio = 0;
+
+      data.forEach(item => {
+        stockList.innerHTML += `
+          <p><strong>${item.sucursal}</strong> - Stock: ${item.stock} | Precio: $${item.precio}</p>
+        `;
+        
+        // Añadir opciones al select de sucursales
+        const option = document.createElement('option');
+        option.value = item.sucursal;
+        option.text = item.sucursal;
+        sucursalSelect.appendChild(option);
+
+        totalPrecio = item.precio; // El precio que tomamos para calcular
+      });
+
+      // Establecer el total en USD al 10% menos (por ejemplo)
+      const totalUSD = totalPrecio * 0.1;
+      document.getElementById('total').textContent = totalPrecio;
+      document.getElementById('total-usd').textContent = totalUSD.toFixed(2);
+    }
+
+    function calcularTotal() {
+      const cantidad = document.getElementById('cantidad').value;
+      const precio = parseFloat(document.getElementById('total').textContent);
+      const total = precio * cantidad;
+      document.getElementById('total').textContent = total.toFixed(2);
+
+      // Opcionalmente puedes hacer un cálculo en USD también
+      const totalUSD = total * 0.1;
+      document.getElementById('total-usd').textContent = totalUSD.toFixed(2);
+    }
+
+    async function realizarVenta() {
+      const productoId = document.getElementById('productoId').value;
+      const sucursalNombre = document.getElementById('sucursal').value;
+      const cantidad = document.getElementById('cantidad').value;
+
+      const sucursalId = await obtenerSucursalIdPorNombre(sucursalNombre); // Obtener el ID de sucursal
+
+      const response = await fetch('/api/venta/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          producto_id: productoId,
+          sucursal_id: sucursalId,
+          cantidad: cantidad
+        })
+      });
+
+      const resultado = await response.json();
+      const mensaje = document.getElementById('mensaje');
+      mensaje.textContent = resultado.mensaje || resultado.error;
+    }
+
+    // Simulación para mapear nombre de sucursal a ID
+    async function obtenerSucursalIdPorNombre(nombre) {
+      // Aquí deberías mapear el nombre de la sucursal al ID real
+      const mapa = {
+        "Sucursal 1": 1,
+        "Sucursal 2": 2,
+        "Sucursal 3": 3,
+        "Casa Matriz": 4,
+      };
+      return mapa[nombre];
+    }
+  </script>
 </body>
 </html>
