@@ -56,7 +56,7 @@ def realizar_venta(request):
     producto_sucursal.stock -= cantidad
     producto_sucursal.save()
     
-    # Si el stock llegó a cero, disparamos un mensaje SSE
+    # Si el stock llegó a cero, disparamos un mensaje SSE CREO QUE ESTA DEMAS ESTO BORRAR EN FUTURO
     if producto_sucursal.stock == 0:
         global stock_bajo_mensaje
         stock_bajo_mensaje = (

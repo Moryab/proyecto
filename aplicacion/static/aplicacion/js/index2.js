@@ -41,9 +41,26 @@ function calcularTotal() {
   const total = precio * cantidad;
   const totalUSD = total * 0.1;
 
-  document.getElementById('total').textContent = total.toFixed(2);
-  document.getElementById('total-usd').textContent = totalUSD.toFixed(2);
+  // Formatear el total en CLP
+  const totalFormateado = total.toLocaleString('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,  // CLP no usa decimales
+    maximumFractionDigits: 0
+  });
+
+  // Formatear el total en USD con dos decimales
+  const totalUSDFormateado = totalUSD.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  document.getElementById('total').textContent = totalFormateado;
+  document.getElementById('total-usd').textContent = totalUSDFormateado;
 }
+
 
 // Función para obtener la cookie CSRF
 function getCookie(name) {
