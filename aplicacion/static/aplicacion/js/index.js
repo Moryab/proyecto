@@ -1,80 +1,84 @@
-const apiURL = "https://tuapi.com/productos"; // <-- Reemplaza con tu URL real
+// ESTO HACE QUE FUNCIONE EL FORMULARIO
 
-const stockList = document.getElementById("stock-list");
-const sucursalSelect = document.getElementById("sucursal");
-const cantidadInput = document.getElementById("cantidad");
-const calcBtn = document.getElementById("calc");
-const venderBtn = document.getElementById("vender");
-const totalSpan = document.getElementById("total");
-const totalUsdSpan = document.getElementById("total-usd");
+let preciosPorSucursal = {};
 
-let productos = [];
-let tasaCambio = 1.0;
-
-// Simula una consulta a la API y la base de datos
-async function cargarDatos() {
-  const response = await fetch(apiURL);
+async function buscarProducto() {
+  const nombreProducto = document.getElementById('productoNombre').value;
+  const url = `/api/productos/nombre/${encodeURIComponent(nombreProducto)}/`;
+  const response = await fetch(url);
   const data = await response.json();
 
-  productos = data;
-  mostrarStock(data);
-  cargarSucursales(data);
-}
-
-// Muestra stock por sucursal
-function mostrarStock(data) {
-  stockList.innerHTML = "";
-  data.forEach(item => {
-    const div = document.createElement("div");
-    div.textContent = `Sucursal ${item.sucursal} | Cant: ${item.cantidad} | Precio: ${item.precio}`;
-    stockList.appendChild(div);
-  });
-
-  const casaMatriz = document.createElement("div");
-  casaMatriz.innerHTML = `<hr>Cant Casa Matriz: 10 | Precio: 999`;
-  stockList.appendChild(casaMatriz);
-}
-
-// Llena el select de sucursales
-function cargarSucursales(data) {
-  const sucursales = [...new Set(data.map(item => item.sucursal))];
+  const stockList = document.getElementById('stock-list');
+  const sucursalSelect = document.getElementById('sucursal');
+  stockList.innerHTML = "<h3>Stock por Sucursal:</h3>";
   sucursalSelect.innerHTML = "";
-  sucursales.forEach(sucursal => {
-    const option = document.createElement("option");
-    option.value = sucursal;
-    option.textContent = sucursal;
+  preciosPorSucursal = {};
+
+  if (data.length === 0) {
+    stockList.innerHTML += "<p>No se encontraron productos con ese nombre.</p>";
+    return;
+  }
+
+  data.forEach(item => {
+    stockList.innerHTML += `
+      <p><strong>${item.sucursal_nombre}</strong> - Stock: ${item.stock} | Precio: $${item.precio}</p>
+    `;
+
+    const option = document.createElement('option');
+    option.value = item.sucursal_id;
+    option.text = `${item.sucursal_nombre} (Stock: ${item.stock})`;
     sucursalSelect.appendChild(option);
+
+    preciosPorSucursal[item.sucursal_id] = parseFloat(item.precio);
   });
+
+  calcularTotal(); // muestra total inicial
 }
 
-// Calcula el total
-calcBtn.addEventListener("click", async () => {
-  const sucursal = sucursalSelect.value;
-  const cantidad = parseInt(cantidadInput.value);
+function calcularTotal() {
+  const cantidad = parseInt(document.getElementById('cantidad').value || 1);
+  const sucursalId = document.getElementById('sucursal').value;
 
-  const producto = productos.find(p => p.sucursal === sucursal);
-  if (!producto) return;
+  const precio = preciosPorSucursal[sucursalId] || 0;
+  const total = precio * cantidad;
+  const totalUSD = total * 0.1;
 
-  const total = cantidad * producto.precio;
-  totalSpan.textContent = total;
+  document.getElementById('total').textContent = total.toFixed(2);
+  document.getElementById('total-usd').textContent = totalUSD.toFixed(2);
+}
 
-  // Supongamos que la conversión USD viene de otra API
-  const usd = await fetch("https://api.exchangerate-api.com/v4/latest/CLP")
-    .then(res => res.json())
-    .then(data => data.rates.USD);
+async function realizarVenta() {
+  const productoNombre = document.getElementById('productoNombre').value;
+  const sucursalId = document.getElementById('sucursal').value;
+  const cantidad = document.getElementById('cantidad').value;
 
-  tasaCambio = usd;
-  totalUsdSpan.textContent = (total * usd).toFixed(2);
-});
+  // ⚠️ Necesitas un endpoint que convierta nombre → ID o usar nombre en el backend
+  const productoId = await obtenerProductoIdPorNombre(productoNombre);
+  if (!productoId) {
+    document.getElementById('mensaje').textContent = "Producto no encontrado.";
+    return;
+  }
 
-// Simula venta
-venderBtn.addEventListener("click", () => {
-  const sucursal = sucursalSelect.value;
-  const cantidad = parseInt(cantidadInput.value);
+  const response = await fetch('/api/venta/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      producto_id: productoId,
+      sucursal_id: sucursalId,
+      cantidad: cantidad
+    })
+  });
 
-  alert(`Procesando venta de ${cantidad} unidades en ${sucursal}`);
+  const resultado = await response.json();
+  document.getElementById('mensaje').textContent = resultado.mensaje || resultado.error;
+}
 
-  // Aquí deberías hacer la lógica para disminuir stock e integración con Transbank
-});
+// 🔄 Obtener ID real desde nombre (podrías hacer un fetch aquí)
+async function obtenerProductoIdPorNombre(nombre) {
+  const url = `/api/productos/id-por-nombre/${encodeURIComponent(nombre)}/`;
+  const response = await fetch(url);
+  if (!response.ok) return null;
 
-cargarDatos();
+  const data = await response.json();
+  return data.producto_id; // necesitas que la vista retorne esto
+}

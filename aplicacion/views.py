@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Producto, ProductoSucursal
 from .serializers import ProductoSucursalSerializer
+from django.db.models import Q
 
 # Vista para mostrar el frontend (como ya tienes)
 def index(request):
@@ -35,3 +36,15 @@ def realizar_venta(request):
     producto_sucursal.save()
 
     return Response({"mensaje": "Venta realizada correctamente"})
+
+@api_view(['GET'])
+def buscar_por_nombre(request, nombre):
+    productos = Producto.objects.filter(nombre__icontains=nombre)
+    
+    if not productos.exists():
+        return Response([])
+
+    producto = productos.first()  # Asumimos el primero
+    items = ProductoSucursal.objects.filter(producto=producto)
+    serializer = ProductoSucursalSerializer(items, many=True)
+    return Response(serializer.data)
