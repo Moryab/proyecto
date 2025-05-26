@@ -33,32 +33,35 @@ async function buscarProducto() {
   calcularTotal(); // muestra total inicial
 }
 
-function calcularTotal() {
+async function calcularTotal() {
   const cantidad = parseInt(document.getElementById('cantidad').value || 1);
   const sucursalId = document.getElementById('sucursal').value;
-
   const precio = preciosPorSucursal[sucursalId] || 0;
   const total = precio * cantidad;
-  const totalUSD = total * 0.1;
+/*   console.log("CLP total:", total);
+ */
 
-  // Formatear el total en CLP
-  const totalFormateado = total.toLocaleString('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,  // CLP no usa decimales
-    maximumFractionDigits: 0
+  document.getElementById('total').textContent = total.toLocaleString("es-CL", {
+    style: "currency",
+    currency: "CLP"
   });
 
-  // Formatear el total en USD con dos decimales
-  const totalUSDFormateado = totalUSD.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  try {
+    const response = await fetch(`/api/convertir-clp-a-usd/?clp=${total}`);
+    const data = await response.json();
 
-  document.getElementById('total').textContent = totalFormateado;
-  document.getElementById('total-usd').textContent = totalUSDFormateado;
+    if (response.ok) {
+      document.getElementById('total-usd').textContent = data.usd.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD"
+      });
+    } else {
+      document.getElementById('total-usd').textContent = "Error";
+    }
+  } catch (error) {
+    console.error("Error al convertir a USD:", error);
+    document.getElementById('total-usd').textContent = "Error";
+  }
 }
 
 
