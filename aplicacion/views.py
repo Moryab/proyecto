@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Producto, ProductoSucursal
 from .serializers import ProductoSucursalSerializer
-
+import redis
+from django.http import StreamingHttpResponse
 
 # Vista para mostrar el frontend (como ya tienes)
 def index(request):
@@ -49,6 +50,12 @@ def realizar_venta(request):
 
     producto_sucursal.stock -= cantidad
     producto_sucursal.save()
+    
+        # Verificar si el stock llegó a 0 y publicar en Redis
+    if producto_sucursal.stock == 0:
+        r = redis.Redis()
+        mensaje = f"⚠️ Stock agotado en {producto_sucursal.sucursal.nombre} para '{producto_sucursal.producto.nombre}'"
+        r.publish('stock_alerts', mensaje)
 
 
     return Response({"mensaje": "Venta realizada correctamente"})
@@ -64,3 +71,17 @@ def buscar_por_nombre(request, nombre):
     items = ProductoSucursal.objects.filter(producto=producto)
     serializer = ProductoSucursalSerializer(items, many=True)
     return Response(serializer.data)
+
+
+
+def sse_stock_alert(request):
+    def event_stream():
+        r = redis.Redis()
+        pubsub = r.pubsub()
+        pubsub.subscribe('stock_alerts')
+
+        for message in pubsub.listen():
+            if message['type'] == 'message':
+                yield f"data: {message['data'].decode('utf-8')}\n\n"
+    
+    return StreamingHttpResponse(event_stream(), content_type='text/event-stream')

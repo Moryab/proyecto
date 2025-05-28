@@ -36,4 +36,14 @@ body {
   #resultado {
     margin: 10px 0;
   }
-  
+/* alerta de SSE */
+#toast-container {
+  position: fixed;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none; /* que no bloquee clicks debajo */
+}
