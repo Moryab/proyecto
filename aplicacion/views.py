@@ -74,7 +74,7 @@ def buscar_por_nombre(request, nombre):
 
 
 
-def sse_stock_alert(request):
+def sse_stock(request):
     def event_stream():
         r = redis.Redis()
         pubsub = r.pubsub()
