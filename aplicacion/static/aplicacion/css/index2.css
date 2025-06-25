@@ -22,14 +22,14 @@ body {
     border: 1px solid #ccc;
   }
   
-  button {
+  .btn-form {
     background-color: #2196F3;
     color: white;
     border: none;
     cursor: pointer;
   }
   
-  button:hover {
+  .btn-form:hover {
     background-color: #1976D2;
   }
   
@@ -46,4 +46,23 @@ body {
   flex-direction: column;
   align-items: center;
   pointer-events: none; /* que no bloquee clicks debajo */
+}
+
+/* Estilo boton en index */
+.btn-bonito {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6a11cb 0%, #fc2525 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(37, 117, 252, 0.3);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-bonito:hover {
+  background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+  box-shadow: 0 6px 12px rgba(37, 117, 252, 0.5);
 }

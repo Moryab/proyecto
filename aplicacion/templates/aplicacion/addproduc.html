@@ -6,7 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Añadir Producto</title>
-    <link rel="stylesheet" href="{% static 'aplicacion/css/addproduc.css' %}">
+    <link rel="stylesheet" href="{% static 'aplicacion/css/addproduc2.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pVlf8M/70+T93J2K1UMoTRwJRH7h81vvULtN2JSuVqeMFFqQdbOf6YTN2dTZT4P1c+CY36V6VQznpXoZVx7lhw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 </head>
 
 <body>
@@ -21,10 +23,11 @@
     </div>
     {% endif %}
     <!-- Formulario añadir -->
-    <div class="edit-form-container">
-        <div class="form-header">
-            <h2>Añadir Producto</h2>
-        </div>
+  <div class="edit-form-container">
+    <div class="form-header">
+        <a href="{% url 'index' %}"  class="back-arrow">←</a>
+        <h2>Añadir Producto</h2>
+    </div>
         <form method="post" enctype="multipart/form-data" class="was-validated">
             {% csrf_token %}
             <input type="hidden" id="productId" name="productId" value="001">
