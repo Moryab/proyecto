@@ -1,14 +1,50 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Producto, ProductoSucursal
+from .models import Producto, ProductoSucursal, Sucursal
 from .serializers import ProductoSucursalSerializer
 import redis
 from django.http import StreamingHttpResponse
+import grpc
+import grpc_services.producto_pb2 as producto_pb2
+import grpc_services.producto_pb2_grpc as producto_pb2_grpc
+from django.contrib import messages
 
-# Vista para mostrar el frontend (como ya tienes)
 def index(request):
     return render(request, "aplicacion/index.html")
+
+def addproduc(request):
+    if request.method == 'POST':
+        nombre = request.POST['nombre']
+        sucursal_id = request.POST['categoria']
+        precio_str = request.POST['precio']
+        stock_str = request.POST.get('stock', '0')  # viene como string, pon '0' por defecto
+
+        # Convertir a tipos adecuados
+        try:
+            precio = float(precio_str)
+        except ValueError:
+            messages.error(request, "Precio inválido")
+            return redirect('addproduc')
+
+        try:
+            stock = int(stock_str)
+        except ValueError:
+            messages.error(request, "Stock inválido")
+            return redirect('addproduc')
+
+        imagen_binaria = request.FILES['imagen'].read()
+
+        respuesta = enviar_a_grpc(nombre, sucursal_id, precio, stock, imagen_binaria)
+
+        if respuesta.exito:
+            messages.success(request, 'Producto agregado exitosamente')
+            return redirect('addproduc')
+        else:
+            messages.error(request, respuesta.mensaje)
+    
+    sucursales = Sucursal.objects.all()
+    return render(request, "aplicacion/addproduc.html", {"sucursales": sucursales})
 
 # API: obtener stock y precios de un producto por sucursal
 @api_view(['GET'])
@@ -85,3 +121,26 @@ def sse_stock(request):
                 yield f"data: {message['data'].decode('utf-8')}\n\n"
     
     return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+
+def enviar_a_grpc(nombre, sucursal_id, precio, stock, imagen_binaria):
+    channel = grpc.insecure_channel('localhost:50051')
+    stub = producto_pb2_grpc.ProductoServiceStub(channel)
+
+    # Conversión segura de tipos
+    try:
+        precio_float = float(precio)
+        stock_int = int(stock)
+        sucursal_int = int(sucursal_id)  # ✅ esto es lo importante
+    except (ValueError, TypeError) as e:
+        raise ValueError("Error de conversión en los datos enviados a gRPC: " + str(e))
+
+    request = producto_pb2.ProductoRequest(
+        nombre=nombre,
+        sucursal_id=sucursal_int,  # ✅ debe ser int
+        precio=precio_float,
+        stock=stock_int,
+        imagen=imagen_binaria
+    )
+
+    response = stub.CrearProducto(request)
+    return response

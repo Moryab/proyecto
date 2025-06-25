@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package productos;
+
+service ProductoService {
+    rpc CrearProducto (ProductoRequest) returns (ProductoResponse);
+}
+
+message ProductoRequest {
+    string nombre = 1;
+    int32 sucursal_id = 2;
+    double precio = 3;
+    int32 stock = 4;
+    bytes imagen = 5;  // archivo binario de imagen
+}
+
+message ProductoResponse {
+    bool exito = 1;
+    string mensaje = 2;
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir Producto</title>
+    <link rel="stylesheet" href="{% static 'aplicacion/css/addproduc.css' %}">
+</head>
+
+<body>
+    <!-- Mensajes de feedback -->
+    {% if messages %}
+    <div class="messages-container">
+        <ul class="messages-list">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    <!-- Formulario añadir -->
+    <div class="edit-form-container">
+        <div class="form-header">
+            <h2>Añadir Producto</h2>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="was-validated">
+            {% csrf_token %}
+            <input type="hidden" id="productId" name="productId" value="001">
+
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required oninput="validarNombre()">
+                <div id="error-nombre" class="invalid-feedback">Rellene el campo solo con texto.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="precio">Precio:</label>
+                <input type="text" id="precio" name="precio" required oninput="validarPrecio()">
+                <div id="error-precio" class="invalid-feedback">Ingrese un valor numerico.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" min="0" required>
+                <div class="invalid-feedback">Ingrese un stock válido.</div>
+            </div>
+
+
+
+            <div class="form-group">
+                <label for="categoria">Asignar a Sucursal:</label>
+                <select id="categoria" name="categoria" required>
+                    {% for sucursal in sucursales %}
+                    <option value="{{ sucursal.id }}">{{ sucursal.nombre }}</option>
+                    {% endfor %}
+                </select>
+
+                <div id="error-categoria" class="invalid-feedback">Seleccione una Sucursal.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="imagen">Imagen del Producto:</label>
+                <input type="file" id="imagen" name="imagen" accept="image/*" required onchange="validarImagen()">
+                <div class="invalid-feedback">Seleccione una imagen antes de enviar.</div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Añadir Producto</button>
+            </div>
+        </form>
+    </div>
+    <script src="{% static 'aplicacion/js/validaciones.js' %}"></script>
+</body>
+
+</html>
